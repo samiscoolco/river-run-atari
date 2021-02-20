@@ -1,28 +1,46 @@
-
-   COLUBK = 3
+   set kernel_options pfcolors
+   COLUBK = $D2
    COLUPF = $C6
 
    player0x = 28
    player0y = 63
+
+   player1x = 27
+   player1y = 32
 
 
    a=0
    b=0
    c=0
    d=0
+   e=0
+   f=200
 
    playfield:
-   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   .....X.........X..........X.....
-   .....X.....................X....
    ................................
    ................................
-   ...............................X
+   ................................
+   ................................
+   ................................
+   ................................
    ................................
    ................................
    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 end
+   pfcolors:
+   $0E
+   $0E
+   $F8
+   $F8
+   $F8
+   $F8
+   $F8
+   $F8
+   $28
+   $9A
+end
+
 
  player0:
    %01101100
@@ -45,18 +63,55 @@ end
 
 
 
+ player1:
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00001000
+   %00001000
+   %00001000
+   %01011001
+   %00111110
+   %10111100
+   %11111111
+   %01111100
+   %01110110
+   %01100001
+   %01000000
+   %00000000
+   %00000000
+   %00000000
+end
+
+
+
    
    
 main
-
    pfpixel 0 7 off
+   pfpixel 0 5 off
    b=b+1
    d=d+1
+   
    if d>=25 then d=0
-   if b>=200 then b=0 : gosub make_obs
+   if b>=f then b=0 : gosub make_obs
    c=b//4
    c=temp1
-   if c=2 then pfscroll left
+   if c=2 then pfscroll left : player1x=player1x-1
+   if player1x<=0 then player1x=160
 
    if d=0 then player0:
    %01101100
@@ -96,8 +151,10 @@ end
    %00011000
 end
    
-
+   COLUPF = $0E
    COLUP0 = 28
+   COLUP1 = $C0
+   NUSIZ1=$4
 
    /* written by Nat V */
    if joy0up && a=0 then a=40
@@ -155,7 +212,11 @@ end
 
 
 make_obs
+   f=rand & 63
+   f=f+50
    score=score+10
+   e=rand & 3
+   if e=3 then pfpixel 31 5 on : return
    pfpixel 31 7 on
    return
 
