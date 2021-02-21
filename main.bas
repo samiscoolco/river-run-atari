@@ -1,4 +1,6 @@
    set kernel_options pfcolors
+
+__Start_Restart
    COLUBK = $D2
    COLUPF = $C6
 
@@ -101,6 +103,7 @@ end
    
    
 main
+   if switchreset then goto __Start_Restart
    pfpixel 0 7 off
    pfpixel 0 5 off
    b=b+1
@@ -222,5 +225,10 @@ make_obs
 
 
 eog
+   if switchreset then goto __Start_Restart
+   drawscreen
+   goto eog
+
+reset
    drawscreen
    goto eog
