@@ -1,6 +1,8 @@
    set kernel_options pfcolors
 
 __Start_Restart
+   missile0x = 255
+
    COLUBK = $D2
    COLUPF = $C6
 
@@ -9,8 +11,8 @@ __Start_Restart
 
    player1x = 27
    player1y = 32
-
-
+   score = 0
+   
    a=0
    b=0
    c=0
@@ -158,6 +160,10 @@ end
    COLUP0 = 28
    COLUP1 = $C0
    NUSIZ1=$4
+   
+   if missile0x>51 && joy0fire then missile0x = player0x : missile0y=55
+   if missile0x<52 then missile0x=missile0x+1 else missile0y=0
+
 
    /* written by Nat V */
    if joy0up && a=0 then a=40
@@ -205,21 +211,23 @@ end
    %00000000
    %00000000
 end
-
    drawscreen
-
    if collision(player0,playfield) then gosub eog
-
-
+   if collision(missile0,playfield) then gosub missile_hit
    goto main
+
+missile_hit
+   pfhline 5 6 20 off
+   return
 
 
 make_obs
    f=rand & 63
    f=f+50
    score=score+10
-   e=rand & 3
-   if e=3 then pfpixel 31 5 on : return
+   e=rand & 15
+   if e<5 then pfpixel 31 6 on : return
+   if e<10 then pfpixel 31 5 on : return
    pfpixel 31 7 on
    return
 
