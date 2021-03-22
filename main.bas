@@ -8,7 +8,6 @@ __Start_Restart
 
    player0x = 28
    player0y = 63
-
    player1x = 27
    player1y = 32
    score = 0
@@ -19,6 +18,18 @@ __Start_Restart
    d=0
    e=0
    f=200
+
+   dim _Ch0_Sound = g
+   dim _Ch0_Duration = h
+   dim _C0 = i
+   dim _V0 = j
+   dim _F0 = k
+
+   l=0
+   m=0
+
+   dim tempx=l
+   dim tempy=m
 
    playfield:
    ................................
@@ -39,7 +50,7 @@ end
    $F8
    $F8
    $F8
-   $F8
+   $00
    $F8
    $28
    $9A
@@ -105,6 +116,8 @@ end
    
    
 main
+   if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
+   _Ch0_Duration = _Ch0_Duration-1
    if switchreset then goto __Start_Restart
    pfpixel 0 7 off
    pfpixel 0 5 off
@@ -161,14 +174,16 @@ end
    COLUP1 = $C0
    NUSIZ1=$4
    
-   if missile0x>51 && joy0fire then missile0x = player0x : missile0y=55
-   if missile0x<52 then missile0x=missile0x+1 else missile0y=0
+   if missile0x>51 && joy0fire then missile0x = player0x : missile0y=55 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
+   if missile0x<52 then missile0x=missile0x+1 : tempx = missile0x/4 : tempy = missile0y/8 : pfpixel tempx tempy off else missile0y=0
+
+
 
 
    /* written by Nat V */
-   if joy0up && a=0 then a=40
-   if joy0up && a>100 then a=40
-   if a > 20 && a < 100 then player0y = player0y-1 : a = a-1
+   if joy0up && a=0 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if joy0up && a>100 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if a > 20 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-40 /* slide the jump audio using the jump timer :) */
    if a > 0 && a <= 20 then player0y = player0y+1 : a = a-1
 
    if joy0down && a=0 then a=101
@@ -211,6 +226,7 @@ end
    %00000000
    %00000000
 end
+
    drawscreen
    if collision(player0,playfield) then gosub eog
    if collision(missile0,playfield) then gosub missile_hit
@@ -223,7 +239,7 @@ missile_hit
 
 make_obs
    f=rand & 63
-   f=f+50
+   f=f+20
    score=score+10
    e=rand & 15
    if e<5 then pfpixel 31 6 on : return
@@ -233,6 +249,7 @@ make_obs
 
 
 eog
+   AUDV0 = 0
    if switchreset then goto __Start_Restart
    drawscreen
    goto eog
