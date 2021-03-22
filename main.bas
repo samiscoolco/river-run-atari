@@ -1,4 +1,103 @@
    set kernel_options pfcolors
+   z=0
+
+   player1:
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00001000
+   %00001000
+   %00001000
+   %01011001
+   %00111110
+   %10111100
+   %11111111
+   %01111100
+   %01110110
+   %01100001
+   %01000000
+   %00000000
+   %00000000
+   %00000000
+end
+
+   pfcolors:
+   $FC
+   $FA
+   $F8
+   $F6
+   $F4
+   $FC
+   $FA
+   $F8
+   $F6
+   $8E
+end
+
+title
+   z=1
+
+   player0x=34
+   player0y=58
+
+   player1x=18
+   player1y=72
+
+   player0:
+   %10000011
+   %01000010
+   %01100110
+   %00111000
+   %00111000
+   %00011000
+   %00011000
+   %11011000
+   %01111000
+   %00111000
+   %00111110
+   %00110011
+   %00111100
+   %00111100
+   %00110100
+   %00011000
+end
+
+   playfield:
+   XXX.X.X.X.XXX.XXX...............
+   X.X.X.X.X.X...X.X...............
+   XX..X.X.X.XX..XX................
+   X.X.X..X..XXX.X.X...............
+   ................................
+   ...................XXX.X.X.X..X.
+   ...................X.X.X.X.XX.X.
+   ...................XX..X.X.X.XX.
+   .......X...........X.X.XXX.X..X.
+   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   end
+   goto titleloop
+end
+
+titleloop
+   COLUP0 = 28
+   COLUP1 = $C0
+   NUSIZ1=$6
+   drawscreen
+   if joy0fire || switchreset then goto __Start_Restart
+   goto titleloop
+end
 
 __Start_Restart
    missile0x = 255
@@ -89,14 +188,11 @@ end
    %00000000
    %00000000
 end
-
-
-
-   
    
 main
    if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
    _Ch0_Duration = _Ch0_Duration-1
+   if z=0 then gosub title
    if switchreset then goto __Start_Restart
    pfpixel 0 7 off
    pfpixel 0 5 off
@@ -163,7 +259,7 @@ end
    /* written by Nat V */
    if joy0up && a=0 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if joy0up && a>100 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if a > 20 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-40 /* slide the jump audio using the jump timer :) */
+   if a > 20 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-40 /* slide the jump audio using the jump timer :) -sam*/
    if a > 0 && a <= 20 then player0y = player0y+1 : a = a-1
 
    if joy0down && a=0 then a=101
