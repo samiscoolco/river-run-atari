@@ -27,7 +27,6 @@ __Start_Restart
 
    l=0
    m=0
-
    dim tempx=l
    dim tempy=m
 
@@ -54,26 +53,6 @@ end
    $F8
    $28
    $9A
-end
-
-
- player0:
-   %01101100
-   %01001000
-   %00101000
-   %00111000
-   %00111000
-   %00011000
-   %00111000
-   %01011000
-   %01111100
-   %01111010
-   %01111000
-   %00110000
-   %00111100
-   %00111100
-   %00110100
-   %00011000
 end
 
 
@@ -174,10 +153,11 @@ end
    COLUP1 = $C0
    NUSIZ1=$4
    
-   if missile0x>51 && joy0fire then missile0x = player0x : missile0y=55 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
-   if missile0x<52 then missile0x=missile0x+1 : tempx = missile0x/4 : tempy = missile0y/8 : pfpixel tempx tempy off else missile0y=0
+   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=55 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
 
-
+   /* written by Nat V */
+   if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-5 : tempy = (missile0y/8) : pfpixel tempx tempy off else missile0y=0 : tempx = 0 : tempy = 0
+   pfpixel tempx tempy off
 
 
    /* written by Nat V */
@@ -229,12 +209,7 @@ end
 
    drawscreen
    if collision(player0,playfield) then gosub eog
-   if collision(missile0,playfield) then gosub missile_hit
    goto main
-
-missile_hit
-   pfhline 5 6 20 off
-   return
 
 
 make_obs
