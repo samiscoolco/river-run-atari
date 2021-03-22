@@ -1,5 +1,4 @@
    set kernel_options pfcolors
-   z=0
 
    player1:
    %00111100
@@ -95,7 +94,7 @@ titleloop
    COLUP1 = $C0
    NUSIZ1=$6
    drawscreen
-   if joy0fire || switchreset then goto __Start_Restart
+   if joy0fire || switchreset then z=0 : goto __Start_Restart
    goto titleloop
 end
 
@@ -153,46 +152,11 @@ end
    $28
    $9A
 end
-
-
-
- player1:
-   %00111100
-   %00111100
-   %00111100
-   %00111100
-   %00111100
-   %00111000
-   %00111000
-   %00111000
-   %00111000
-   %00111000
-   %00111000
-   %00011000
-   %00011000
-   %00011000
-   %00011000
-   %00011000
-   %00001000
-   %00001000
-   %00001000
-   %01011001
-   %00111110
-   %10111100
-   %11111111
-   %01111100
-   %01110110
-   %01100001
-   %01000000
-   %00000000
-   %00000000
-   %00000000
-end
-   
+   if z=1 then goto title  
 main
    if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
    _Ch0_Duration = _Ch0_Duration-1
-   if z=0 then gosub title
+   
    if switchreset then goto __Start_Restart
    pfpixel 0 7 off
    pfpixel 0 5 off
@@ -302,9 +266,8 @@ end
    %00000000
    %00000000
 end
-
    drawscreen
-   if collision(player0,playfield) then gosub eog
+   if collision(player0,playfield) then goto eog
    goto main
 
 
@@ -318,13 +281,8 @@ make_obs
    pfpixel 31 7 on
    return
 
-
 eog
    AUDV0 = 0
    if switchreset then goto __Start_Restart
-   drawscreen
-   goto eog
-
-reset
    drawscreen
    goto eog
