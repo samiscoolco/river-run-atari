@@ -213,18 +213,17 @@ end
    COLUP1 = $C0
    NUSIZ1=$4
    
-   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=55 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
+   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
 
    /* written by Nat V */
-   if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-5 : tempy = (missile0y/8) : pfpixel tempx tempy off else missile0y=0 : tempx = 0 : tempy = 0
-   pfpixel tempx tempy off
+   if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-4 : tempy = (missile0y/8) : pfpixel tempx tempy off : tempx=tempx-1 : pfpixel tempx tempy off else missile0y=0 : tempx = 0 : tempy = 0
 
 
    /* written by Nat V */
-   if joy0up && a=0 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if joy0up && a>100 then a=40 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if a > 20 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-40 /* slide the jump audio using the jump timer :) -sam*/
-   if a > 0 && a <= 20 then player0y = player0y+1 : a = a-1
+   if joy0up && a=0 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if joy0up && a>100 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if a > 17 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-34 /* slide the jump audio using the jump timer :) -sam*/
+   if a > 0 && a <= 17 then player0y = player0y+1 : a = a-1
 
    if joy0down && a=0 then a=101
    if !joy0down && a>100 then a=0
@@ -273,7 +272,7 @@ end
 
 make_obs
    f=rand & 63
-   f=f+20
+   f=f+12 ;12 seems to be the hardest possible difficult level, so start at 50 and tick down to 11
    score=score+10
    e=rand & 15
    if e<5 then pfpixel 31 6 on : return
