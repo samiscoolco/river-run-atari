@@ -1,5 +1,17 @@
    set kernel_options pfcolors
 
+   
+   set smartbranching on
+
+   dim duration=a
+   dim rand16=z
+
+   AUDV0=0
+   AUDV1=0
+
+   duration = 5
+
+
    player1:
    %00111100
    %00111100
@@ -46,6 +58,9 @@ end
    $8E
 end
 
+
+
+
 title
    z=1
 
@@ -85,18 +100,19 @@ end
    ...................XX..X.X.X.XX.
    .......X...........X.X.XXX.X..X.
    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   end
-   goto titleloop
 end
 
+   goto MusicSetup
+
 titleloop
+   if z=3 then goto GetMusic
+GotMusic
    COLUP0 = 28
    COLUP1 = $C0
    NUSIZ1=$6
    drawscreen
-   if joy0fire || switchreset then z=0 : goto __Start_Restart
+   if joy0fire || switchreset then z=3
    goto titleloop
-end
 
 __Start_Restart
    missile0x = 255
@@ -246,7 +262,6 @@ end
    %00110100
    %00011000
 end
-
    if a>100 then player0:
    %11110001
    %11111011
@@ -269,10 +284,9 @@ end
    if collision(player0,playfield) then goto eog
    goto main
 
-
 make_obs
    f=rand & 63
-   f=f+12 ;12 seems to be the hardest possible difficult level, so start at 50 and tick down to 11
+   f=f+17 ;17 seems to be the hardest possible difficult level, so start at 50 and tick down to 11
    score=score+10
    e=rand & 15
    if e<5 then pfpixel 31 6 on : return
@@ -285,3 +299,110 @@ eog
    if switchreset then goto __Start_Restart
    drawscreen
    goto eog
+
+GetMusic
+   duration = duration - 1
+   if duration>0 then GotMusic
+
+   temp4 = sread(musicData)
+   temp5 = sread(musicData)
+   temp6 = sread(musicData)
+
+   if temp4=255 then duration = 1 : goto MusicSetup
+
+   AUDV0 = temp4
+   AUDC0 = temp5
+   AUDF0 = temp6
+
+   temp4 = sread(musicData)
+   temp5 = sread(musicData)
+   temp6 = sread(musicData)
+
+   AUDV1 = temp4
+   AUDC1 = temp5
+   AUDF1 = temp6
+
+   duration = sread(musicData)
+   if duration = 50 then goto __Start_Restart
+   goto GotMusic
+
+
+MusicSetup
+   sdata musicData=x
+  4,5,29
+  1,12,19
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,29
+  1,12,19
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,23
+  1,12,15
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,23
+  1,12,15
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,29
+  1,12,19
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,29
+  1,12,19
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,23
+  1,12,15
+  18
+  0,0,0
+  0,0,0
+  10
+  4,5,29
+  0,0,0
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,23
+  1,12,15
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,31
+  1,12,20
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,26
+  1,12,17
+  12
+  0,0,0
+  0,0,0
+  3
+  4,5,29
+  2,12,4
+  26
+  0,0,0
+  0,0,0
+  50
+  255,255,255
+  255,255,255
+  1
+end
+   goto GotMusic
