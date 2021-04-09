@@ -1,13 +1,17 @@
+__Full_Restart
+   if switchreset goto __Full_Restart ; Restrain reset switch
    set kernel_options pfcolors
 
    
    set smartbranching on
+   COLUBK = 00 ; 00 = black color for title screen
 
-   q=3
    dim duration=a
-   dim rand16=z
    dim _lives=q
+   dim _collideTimer = z
+
    _lives = 3
+   _collideTimer=0
 
    AUDV0=0
    AUDV1=0
@@ -130,8 +134,6 @@ __Start_Restart
    player1x = 27
    player1y = 32
    
-   
-   
    a=0
    b=0
    c=0
@@ -139,14 +141,8 @@ __Start_Restart
    e=0
    f=200
 
-   
-
-
-   dim _Ch0_Sound = g
    dim _Ch0_Duration = h
-   dim _C0 = i
-   dim _V0 = j
-   dim _F0 = k
+   dim _Ch1_Duration = g
 
    l=0
    m=0
@@ -180,9 +176,11 @@ end
    if z=1 then goto title  
 main
    if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
+   if _Ch1_Duration = 0 then AUDC1 = 8 : AUDV1 = 0 : AUDF1 = 19
    _Ch0_Duration = _Ch0_Duration-1
+   _Ch1_Duration = _Ch1_Duration-1
    
-   if switchreset then goto __Start_Restart
+   if switchreset then goto __Full_Restart
    pfpixel 0 7 off
    pfpixel 0 5 off
    b=b+1
@@ -238,7 +236,7 @@ end
    COLUP1 = $C0
    NUSIZ1=$4
    
-   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
+   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch1_Duration = 2 : AUDV1 = 5
 
 
    if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-4 : tempy = (missile0y/8) : pfpixel tempx tempy off : tempx=tempx-1 : pfpixel tempx tempy off else missile0y=0 : tempx = 0 : tempy = 0
@@ -247,7 +245,7 @@ end
 
    if joy0up && a=0 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if joy0up && a>100 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if a > 17 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-34 /* slide the jump audio using the jump timer :) -sam*/
+   if a > 17 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-34 ; slide the jump audio using the jump timer :)
    if a > 0 && a <= 17 then player0y = player0y+1 : a = a-1
 
    if joy0down && a=0 then a=101
@@ -290,10 +288,16 @@ end
    %00000000
 end
    drawscreen
-   if collision(player0,playfield) then goto collide
+   if collision(player0,playfield) then AUDC1 = 1 : AUDV1 = 5 : _collideTimer = 55 : goto collide ; show where you got hit
    goto main
 
+
+; if player collides, -1 life and then go restart round.
 collide
+   if _collideTimer = 35 then AUDV1=0 ; kind of a silly way to put the colide sound on a timer
+   _collideTimer=_collideTimer-1
+   drawscreen
+   if _collideTimer>0 then goto collide
    _lives = _lives-1
    if _lives = 0 then goto eog
    if _lives >0 then goto __Start_Restart
@@ -303,7 +307,7 @@ collide
 
 make_obs
    f=rand & 63
-   f=f+17 ;17 seems to be the hardest possible difficult level, so start at 50 and tick down to 11
+   f=f+19 ;19 seems to be the hardest possible difficult level, so start at 50 and tick down to 19
    score=score+10
    e=rand & 15
    if e<5 then pfpixel 31 6 on : return
@@ -312,8 +316,9 @@ make_obs
    return
 
 eog
-   AUDV0 = 0
-   if switchreset then goto title
+   AUDV0 = 0 ; silence both audio channels
+   AUDV1 = 0
+   if switchreset then goto __Full_Restart
    drawscreen
    goto eog
 
