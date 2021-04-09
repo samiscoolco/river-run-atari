@@ -3,8 +3,11 @@
    
    set smartbranching on
 
+   q=3
    dim duration=a
    dim rand16=z
+   dim _lives=q
+   _lives = 3
 
    AUDV0=0
    AUDV1=0
@@ -70,6 +73,8 @@ title
    player1x=18
    player1y=72
 
+   score = 0
+
    player0:
    %10000011
    %01000010
@@ -124,7 +129,8 @@ __Start_Restart
    player0y = 63
    player1x = 27
    player1y = 32
-   score = 0
+   
+   
    
    a=0
    b=0
@@ -132,6 +138,9 @@ __Start_Restart
    d=0
    e=0
    f=200
+
+   
+
 
    dim _Ch0_Sound = g
    dim _Ch0_Duration = h
@@ -231,11 +240,11 @@ end
    
    if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch0_Sound = 1 : _Ch0_Duration = 2 : AUDV0 = 4
 
-   /* written by Nat V */
+
    if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-4 : tempy = (missile0y/8) : pfpixel tempx tempy off : tempx=tempx-1 : pfpixel tempx tempy off else missile0y=0 : tempx = 0 : tempy = 0
 
 
-   /* written by Nat V */
+
    if joy0up && a=0 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if joy0up && a>100 then a=34 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if a > 17 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-34 /* slide the jump audio using the jump timer :) -sam*/
@@ -281,8 +290,16 @@ end
    %00000000
 end
    drawscreen
-   if collision(player0,playfield) then goto eog
+   if collision(player0,playfield) then goto collide
    goto main
+
+collide
+   _lives = _lives-1
+   if _lives = 0 then goto eog
+   if _lives >0 then goto __Start_Restart
+   return
+
+
 
 make_obs
    f=rand & 63
@@ -296,7 +313,7 @@ make_obs
 
 eog
    AUDV0 = 0
-   if switchreset then goto __Start_Restart
+   if switchreset then goto title
    drawscreen
    goto eog
 
