@@ -1,3 +1,4 @@
+   const pfscore = 1
 __Full_Restart
    if switchreset goto __Full_Restart ; Restrain reset switch
    set kernel_options pfcolors
@@ -7,17 +8,18 @@ __Full_Restart
    COLUBK = 00 ; 00 = black color for title screen
 
    dim duration=a
-   dim _lives=q
+   dim difficulty=y
    dim _collideTimer = z
 
-   _lives = 3
+   pfscore1 = %00101010
+   pfscore2 = %00000000
+
    _collideTimer=0
 
    AUDV0=0
    AUDV1=0
 
    duration = 5
-
 
    player1:
    %00111100
@@ -52,33 +54,6 @@ __Full_Restart
    %00000000
 end
 
-   pfcolors:
-   $FC
-   $FA
-   $F8
-   $F6
-   $F4
-   $FC
-   $FA
-   $F8
-   $F6
-   $8E
-end
-
-
-
-
-title
-   z=1
-
-   player0x=34
-   player0y=58
-
-   player1x=18
-   player1y=72
-
-   score = 0
-
    player0:
    %10000011
    %01000010
@@ -98,6 +73,7 @@ title
    %00011000
 end
 
+
    playfield:
    XXX.X.X.X.XXX.XXX...............
    X.X.X.X.X.X...X.X...............
@@ -111,16 +87,41 @@ end
    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 end
 
-   goto MusicSetup
 
+title ;title screen loop
+   z=1
+
+   player0x=34
+   player0y=58
+
+   player1x=18
+   player1y=72
+
+   score = 0
+
+   goto MusicSetup
 titleloop
    if z=3 then goto GetMusic
 GotMusic
    COLUP0 = 28
    COLUP1 = $C0
    NUSIZ1=$6
+   
+   ;force playfield colors every frame, idk why but pfscore affects them??
+   pfcolors:
+   $38
+   $FA
+   $F8
+   $F6
+   $F4
+   $FC
+   $FA
+   $F8
+   $F6
+   $8E
+end
    drawscreen
-   if joy0fire || switchreset then z=3
+   if joy0fire || switchreset then z=3 ; start the game!
    goto titleloop
 
 __Start_Restart
@@ -175,6 +176,7 @@ end
 end
    if z=1 then goto title  
 main
+   pfscore2 = %00000000
    if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
    if _Ch1_Duration = 0 then AUDC1 = 8 : AUDV1 = 0 : AUDF1 = 19
    _Ch0_Duration = _Ch0_Duration-1
@@ -288,7 +290,7 @@ end
    %00000000
 end
    drawscreen
-   if collision(player0,playfield) then AUDC1 = 1 : AUDV1 = 5 : _collideTimer = 55 : goto collide ; show where you got hit
+   if collision(player0,playfield) then AUDC1 = 1 : AUDV1 = 5 : _collideTimer = 55 : pfscore1 = pfscore1/4 : goto collide ; show where you got hit
    goto main
 
 
@@ -298,12 +300,8 @@ collide
    _collideTimer=_collideTimer-1
    drawscreen
    if _collideTimer>0 then goto collide
-   _lives = _lives-1
-   if _lives = 0 then goto eog
-   if _lives >0 then goto __Start_Restart
-   return
-
-
+   if pfscore1 = %00000000 then goto eog
+   goto __Start_Restart
 
 make_obs
    f=rand & 63
