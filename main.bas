@@ -1,21 +1,31 @@
    const pfscore = 1
+
+   data _winner
+   $EE,$AE,$5A ;all 8 levels of color
+end
    data _grad
-   $D2,$D4,$D6,$E6,$E4,$F0,$20,$32 ;all 8 levels of color
+   $D2,$D4,$D6,$E6,$E4,$F0,$20,$32,$C4,$D2 ;all 8 levels of color
 end
    data _speedmod
-   100,70,50,40,35,30,20,12 ;all 8 levels block spawn modifiers
+   100,70,40,35,30,25,20,12,100,12 ;all 8 levels block spawn modifiers
 end
    data _pfspeed
-   4,4,4,4,2,2,2,2 ;all 8 levels block spawn modifiers
+   4,4,4,4,2,2,2,2,0,2 ;all 8 levels block spawn modifiers
+end
+   data _pfscoremod
+   75,75,75,75,32,10,20,15,0,0 ;scaling length of each level
+end
+   data _pfjumph
+   40,40,40,40,30,30,30,30,30,30  ;jump height of player per level. (glitch if change occurs mid jump probably? maybe give life to account for that)
 end
 
    dim duration=a
-   dim difficulty=y
    dim _collideTimer = z
    dim _batTimer = w
    dim _difficulty = v
    dim _diffScaleTime = i
    dim _diffScale = j
+   dim _song = o
 
 __Full_Restart
    if switchreset goto __Full_Restart ; Restrain reset switch
@@ -25,10 +35,11 @@ __Full_Restart
    COLUBK = 00 ; 00 = black color for title screen
 
 
-   _batTimer=60
+   _batTimer=0
    _difficulty=0
    _diffScale=0
    _diffScaleTime=0
+   _song=1
    score=0
 
    pfscore1 = %00101010
@@ -74,6 +85,7 @@ __Full_Restart
    %00000000
 end
 
+
    player0:
    %10000011
    %01000010
@@ -115,7 +127,7 @@ title ;title screen loop
    player1x=18
    player1y=72
 
-   goto MusicSetup
+   goto IntroMusic
 titleloop
    if z=3 then goto GetMusic
 GotMusic
@@ -141,6 +153,39 @@ end
    goto titleloop
 
 __Start_Restart
+   player1:
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111100
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00111000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00011000
+   %00001000
+   %00001000
+   %00001000
+   %01011001
+   %00111110
+   %10111100
+   %11111111
+   %01111100
+   %01110110
+   %01100001
+   %01000000
+   %00000000
+   %00000000
+   %00000000
+end
+
    missile0x = 255
    ;YELLOW PLAYER/MISSILE
    COLUPF = $C6
@@ -225,11 +270,24 @@ main
    COLUP1 = $C0
    NUSIZ1=$4
 
-   if _diffScaleTime>100 then _diffScaleTime=0 : _diffScale = _diffScale + 1 : _difficulty = _diffScale/8
-   if _difficulty>7 then _difficulty = 7
+   if _difficulty <9 then if _diffScaleTime>100 then _diffScaleTime=0 : _diffScale = _diffScale + 1 : _difficulty = _diffScale/8 : gosub checkGem
+   if _difficulty=8 then if collision(player0,player1) then _song=2 : score=score+50 : gosub winner
+   if _difficulty=8 then pfhline 0 5 31 off : pfhline 0 6 31 off : pfhline 0 7 31 off 
+   if _difficulty=8 then COLUP1 = $AE : NUSIZ1 = $0 : player1y=54 : player1x=player1x-1: player1:
+   %00011000
+   %00111100
+   %01011110
+   %10111111
+   %11111101
+   %11111101
+   %11111101
+   %01111010
+   %00110100
+   %00011000
+end
+
+
    
-
-
    if d=0 then player0:
    %01101100
    %01001000
@@ -268,8 +326,6 @@ end
    %00011000
 end
    
-
-   
    if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch1_Duration = 2 : AUDV1 = 5
    ;Missile logic, move forward until 100, if it hits pixels, reset.
    if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-4 : tempy = (missile0y/8) else missile0y=0 : tempx = 0 : tempy =0
@@ -277,10 +333,11 @@ end
    if missile0x<100 then if pfread(tempx,tempy) then pfpixel tempx tempy off : missile0x=101 : missile0y=0 : tempx = 0 : tempy = 0
 
 
-   if joy0up && a=0 then a=32 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if joy0up && a>100 then a=32 : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if a > 16 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-32 ;slide the jump audio using the jump timer :)
-   if a > 0 && a <= 16 then player0y = player0y+1 : a = a-1
+   
+   if joy0up && a=0 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if joy0up && a>100 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
+   if a > _pfjumph[_difficulty]/2 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-_pfjumph[_difficulty] ;slide the jump audio using the jump timer :)
+   if a > 0 && a <= _pfjumph[_difficulty]/2 then player0y = player0y+1 : a = a-1
 
    if joy0down && a=0 then a=101
    if !joy0down && a>100 then a=0
@@ -336,19 +393,18 @@ collide
    goto __Start_Restart
 
 make_bat
-   if _difficulty>7 then _difficulty = 0
    _batTimer=rand & 63
-   _batTimer=_batTimer + 10
+   _batTimer=_batTimer + _speedmod[_difficulty]
    score=score+5
-   _diffScaleTime=_diffScaleTime+5
+   _diffScaleTime=_diffScaleTime+10
    pfpixel 31 6 on
    return
 
 make_obs
    f=rand & 31
-   f=f + _speedmod[_difficulty] ;19 seems to be the hardest possible difficult level, so start at 50 and tick down to 19
+   f=f + _speedmod[_difficulty] ;apply difficulty
    score=score+10
-   _diffScaleTime=_diffScaleTime+10
+   _diffScaleTime=_diffScaleTime+_pfscoremod[_difficulty]
    e=rand & 15
    if e<10 then pfpixel 31 5 on else pfpixel 31 7 on
    return
@@ -360,15 +416,49 @@ eog
    drawscreen
    goto eog
 
+
+winner
+   duration=1
+   goto WinnerMusic
+winnerLoop
+   goto GetMusic
+GotMusic2
+   b=b+1
+   if b>13 then b=0
+   if b=0 then c=c+1
+   if c=4 then c=0
+   COLUP1 = _winner[c]
+   if switchreset then goto __Full_Restart
+   drawscreen
+   goto winnerLoop
+
+conScreen
+   b=b+1
+   if b>13 then b=0
+   if b=0 then c=c+1
+   if c=4 then c=0
+   COLUP1 = _winner[c]
+   if switchreset then goto __Full_Restart
+   if joy0fire then _difficulty=9 : goto __Start_Restart
+   drawscreen
+   goto conScreen
+
+checkGem
+   if _diffScale=32 then goto __Start_Restart
+   if _difficulty=8 then player1x=150
+   return
+
 GetMusic
    duration = duration - 1
-   if duration>0 then GotMusic
+   
+   if duration>0 then if _song=1 then goto GotMusic
+   if duration>0 then if _song=2 then goto GotMusic2
 
    temp4 = sread(musicData)
    temp5 = sread(musicData)
    temp6 = sread(musicData)
 
-   if temp4=255 then duration = 1 : goto MusicSetup
+   ;if temp4=255 then duration = 1 : goto MusicSetup
 
    AUDV0 = temp4
    AUDC0 = temp5
@@ -384,10 +474,12 @@ GetMusic
 
    duration = sread(musicData)
    if duration = 50 then goto __Start_Restart
-   goto GotMusic
+   if duration = 51 then goto conScreen ;continue screen
+   if _song=1 then goto GotMusic
+   if _song=2 then goto GotMusic2
 
 ;THE JINGLE DATA ITS PERFECT
-MusicSetup
+IntroMusic
    sdata musicData=x
   4,5,29
   1,12,19
@@ -466,3 +558,51 @@ MusicSetup
   1
 end
    goto GotMusic
+
+;THE JINGLE DATA ITS PERFECT
+WinnerMusic
+   sdata musicData2=x
+  4,5,19
+  0,0,0
+  15
+  0,0,0
+  0,0,0
+  3
+  4,5,19
+  0,0,0
+  7
+  0,0,0
+  0,0,0
+  3
+  4,5,17
+  0,0,0
+  20
+  0,0,0
+  0,0,0
+  3
+  4,5,19
+  0,0,0
+  20
+  0,0,0
+  0,0,0
+  3
+  4,5,15
+  0,0,0
+  22
+  0,0,0
+  0,0,0
+  3
+  4,5,14
+  0,0,0
+  22
+  0,0,0
+  0,0,0
+  40
+  0,0,0
+  0,0,0
+  51
+  255,255,255
+  255,255,255
+  1
+end
+   goto GotMusic2
