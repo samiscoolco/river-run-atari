@@ -1,22 +1,22 @@
    const pfscore = 1
 
    data _winner
-   $EE,$AE,$5A ;all 8 levels of color
+   $EE,$AE,$5A ;cycle colors on jungle gem
 end
    data _grad
-   $D2,$D4,$D6,$E6,$E4,$F0,$20,$32,$C4,$D2 ;all 8 levels of color
+   $D2,$D4,$D6,$E6,$E4,$F0,$20,$32,$C4 ;all 8 levels of color
 end
    data _speedmod
-   100,70,40,35,30,25,20,12,100,12 ;all 8 levels block spawn modifiers
+   60,45,30,28,28,27,25,20,100 ;all 8 levels block spawn modifiers
 end
    data _pfspeed
-   4,4,4,4,2,2,2,2,0,2 ;all 8 levels block spawn modifiers
+   4,4,4,4,2,2,2,2,0 ;all 8 levels block spawn modifiers
 end
    data _pfscoremod
-   75,75,75,75,32,10,20,15,0,0 ;scaling length of each level
+   32,30,25,20,15,10,20,10,0 ;scaling length of each level
 end
    data _pfjumph
-   40,40,40,40,30,30,30,30,30,30  ;jump height of player per level. (glitch if change occurs mid jump probably? maybe give life to account for that)
+   40,40,40,40,30,30,30,30,30  ;jump height of player per level. (glitch if change occurs mid jump probably? maybe give life to account for that)
 end
 
    dim duration=a
@@ -27,13 +27,15 @@ end
    dim _diffScale = j
    dim _song = o
 
+   dim _fire_restrain = k
+   dim _duck_restrain = n
+
 __Full_Restart
    if switchreset goto __Full_Restart ; Restrain reset switch
    set kernel_options pfcolors
    
    set smartbranching on
    COLUBK = 00 ; 00 = black color for title screen
-
 
    _batTimer=0
    _difficulty=0
@@ -42,7 +44,7 @@ __Full_Restart
    _song=1
    score=0
 
-   pfscore1 = %00101010
+   pfscore1 = %10101010
    pfscore2 = %00000000
 
    _collideTimer=0
@@ -115,6 +117,7 @@ end
    ...................XX..X.X.X.XX.
    .......X...........X.X.XXX.X..X.
    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   ................................
 end
 
 
@@ -194,6 +197,9 @@ end
    player0y = 63
    player1x = 27
    player1y = 32
+
+   _fire_restrain=0
+   _duck_restrain=0
    
    a=0
    b=0
@@ -271,7 +277,8 @@ main
    NUSIZ1=$4
 
    if _difficulty <9 then if _diffScaleTime>100 then _diffScaleTime=0 : _diffScale = _diffScale + 1 : _difficulty = _diffScale/8 : gosub checkGem
-   if _difficulty=8 then if collision(player0,player1) then _song=2 : score=score+50 : gosub winner
+
+   if _difficulty=8 then if collision(player0,player1) then _song=2 : score=score+50 : goto winner
    if _difficulty=8 then pfhline 0 5 31 off : pfhline 0 6 31 off : pfhline 0 7 31 off 
    if _difficulty=8 then COLUP1 = $AE : NUSIZ1 = $0 : player1y=54 : player1x=player1x-1: player1:
    %00011000
@@ -287,7 +294,6 @@ main
 end
 
 
-   
    if d=0 then player0:
    %01101100
    %01001000
@@ -325,22 +331,27 @@ end
    %00110100
    %00011000
 end
+
+
+   if !joy0fire then _fire_restrain=0
+   if _fire_restrain=0 then if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch1_Duration = 2 : AUDV1 = 5 : _fire_restrain=1
    
-   if missile0x>70 && joy0fire then missile0x = player0x + 10 : missile0y=53 : _Ch1_Duration = 2 : AUDV1 = 5
    ;Missile logic, move forward until 100, if it hits pixels, reset.
    if missile0x<100 then missile0x=missile0x+1 : tempx = (missile0x/4)-4 : tempy = (missile0y/8) else missile0y=0 : tempx = 0 : tempy =0
    if missile0x<100 then if pfread(tempx,tempy) then pfpixel tempx tempy off : missile0x=101 : missile0y=0 : tempx = 0 : tempy = 0 else tempx=tempx-1
    if missile0x<100 then if pfread(tempx,tempy) then pfpixel tempx tempy off : missile0x=101 : missile0y=0 : tempx = 0 : tempy = 0
 
-
-   
    if joy0up && a=0 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if joy0up && a>100 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
    if a > _pfjumph[_difficulty]/2 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-_pfjumph[_difficulty] ;slide the jump audio using the jump timer :)
    if a > 0 && a <= _pfjumph[_difficulty]/2 then player0y = player0y+1 : a = a-1
 
-   if joy0down && a=0 then a=101
-   if !joy0down && a>100 then a=0
+
+   if !joy0down && _duck_restrain=1 then _duck_restrain=0
+   if _duck_restrain>1 then _duck_restrain=_duck_restrain-1
+   if joy0down && a=0 && _duck_restrain=0 then a=101 : _duck_restrain= 20-_difficulty
+   if a>100 && _duck_restrain=1 then a=0
+
 
    if a>0 then player0:
    %10000011
@@ -381,7 +392,6 @@ end
    drawscreen
    if collision(player0,playfield) then AUDC1 = 1 : AUDV1 = 5 : _collideTimer = 55 : pfscore1 = pfscore1/4 : goto collide ; show where you got hit
    goto main
-
 
 ; if player collides, -1 life and then go restart round.
 collide
@@ -439,7 +449,10 @@ conScreen
    if c=4 then c=0
    COLUP1 = _winner[c]
    if switchreset then goto __Full_Restart
-   if joy0fire then _difficulty=9 : goto __Start_Restart
+   _difficulty=0
+   _diffScale=0
+   _diffScaleTime=0
+   if joy0fire then goto __Start_Restart
    drawscreen
    goto conScreen
 
