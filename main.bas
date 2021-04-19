@@ -1,4 +1,8 @@
    const pfscore = 1
+   
+   set kernel_options pfcolors
+   
+   set smartbranching on
 
    data _winner
    $EE,$AE,$5A ;cycle colors on jungle gem
@@ -7,7 +11,7 @@ end
    $D2,$D4,$D6,$E6,$E4,$F0,$20,$32,$C4 ;all 8 levels of color
 end
    data _speedmod
-   60,45,30,28,28,27,25,20,100 ;all 8 levels block spawn modifiers
+   60,45,33,30,28,27,25,20,0 ;all 8 levels block spawn modifiers
 end
    data _pfspeed
    4,4,4,4,2,2,2,2,0 ;all 8 levels block spawn modifiers
@@ -20,7 +24,7 @@ end
 end
 
    dim duration=a
-   dim _collideTimer = z
+   dim _collideTimer = t
    dim _batTimer = w
    dim _difficulty = v
    dim _diffScaleTime = i
@@ -32,9 +36,7 @@ end
 
 __Full_Restart
    if switchreset goto __Full_Restart ; Restrain reset switch
-   set kernel_options pfcolors
    
-   set smartbranching on
    COLUBK = 00 ; 00 = black color for title screen
 
    _batTimer=0
@@ -246,6 +248,7 @@ end
 main
    COLUBK = _grad[_difficulty]
    pfscore2 = %00000000
+
    if _Ch0_Duration = 0 then AUDC0 = 8 : AUDV0 = 0 : AUDF0 = 19
    if _Ch1_Duration = 0 then AUDC1 = 8 : AUDV1 = 0 : AUDF1 = 19
    _Ch0_Duration = _Ch0_Duration-1
@@ -256,7 +259,6 @@ main
    pfpixel 0 5 off
    b=b+1
    d=d+1
-   
    
    if d>=25 then d=0
    if b>=f then b=0 : gosub make_obs
@@ -269,6 +271,7 @@ main
    if player1x<=0 then player1x=160
 
    _batTimer=_batTimer-1
+   if _difficulty=8 then b=0 : _batTimer=1
    if _batTimer = 0 then gosub make_bat
 
    COLUPF = $0E
@@ -276,23 +279,9 @@ main
    COLUP1 = $C0
    NUSIZ1=$4
 
-   if _difficulty <9 then if _diffScaleTime>100 then _diffScaleTime=0 : _diffScale = _diffScale + 1 : _difficulty = _diffScale/8 : gosub checkGem
-
+   if _diffScaleTime>100 then _diffScaleTime=0 : _diffScale = _diffScale + 1 : _difficulty = _diffScale/8 : gosub checkGem
    if _difficulty=8 then if collision(player0,player1) then _song=2 : score=score+50 : goto winner
-   if _difficulty=8 then pfhline 0 5 31 off : pfhline 0 6 31 off : pfhline 0 7 31 off 
-   if _difficulty=8 then COLUP1 = $AE : NUSIZ1 = $0 : player1y=54 : player1x=player1x-1: player1:
-   %00011000
-   %00111100
-   %01011110
-   %10111111
-   %11111101
-   %11111101
-   %11111101
-   %01111010
-   %00110100
-   %00011000
-end
-
+   if _difficulty=8 then COLUP1 = $AE : NUSIZ1 = $0 : player1x=player1x-1
 
    if d=0 then player0:
    %01101100
@@ -341,15 +330,15 @@ end
    if missile0x<100 then if pfread(tempx,tempy) then pfpixel tempx tempy off : missile0x=101 : missile0y=0 : tempx = 0 : tempy = 0 else tempx=tempx-1
    if missile0x<100 then if pfread(tempx,tempy) then pfpixel tempx tempy off : missile0x=101 : missile0y=0 : tempx = 0 : tempy = 0
 
-   if joy0up && a=0 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if joy0up && a>100 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5
-   if a > _pfjumph[_difficulty]/2 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-_pfjumph[_difficulty] ;slide the jump audio using the jump timer :)
+   if joy0up && a=0 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5 ; Set voice to 4, Volume to 5, and Duration to 5
+   if joy0up && a>100 then a=_pfjumph[_difficulty] : AUDC0 = 4 : AUDV0 = 5 : _Ch0_Duration = 5 ; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   if a > _pfjumph[_difficulty]/2 && a < 100 then player0y = player0y-1 : a = a-1 : AUDF0 = a-_pfjumph[_difficulty] ;slide the jump audio using the jump timer
    if a > 0 && a <= _pfjumph[_difficulty]/2 then player0y = player0y+1 : a = a-1
 
 
    if !joy0down && _duck_restrain=1 then _duck_restrain=0
    if _duck_restrain>1 then _duck_restrain=_duck_restrain-1
-   if joy0down && a=0 && _duck_restrain=0 then a=101 : _duck_restrain= 20-_difficulty
+   if joy0down && a=0 && _duck_restrain=0 then a=101 : _duck_restrain= 21-_difficulty
    if a>100 && _duck_restrain=1 then a=0
 
 
@@ -458,7 +447,20 @@ conScreen
 
 checkGem
    if _diffScale=32 then goto __Start_Restart
-   if _difficulty=8 then player1x=150
+   if _difficulty=8 then player1x=150 : player1y=54
+   if _difficulty=8 then pfhline 0 5 31 off : pfhline 0 6 31 off : pfhline 0 7 31 off
+   if _difficulty=8 then player1:
+   %00011000
+   %00111100
+   %01011110
+   %10111111
+   %11111101
+   %11111101
+   %11111101
+   %01111010
+   %00110100
+   %00011000
+end
    return
 
 GetMusic
